@@ -22,6 +22,14 @@ import Control.Monad
 import Data.List
 import Data.Maybe
 
+munchSpaces :: ReadP ()
+munchSpaces =
+    do  s <- look
+        skip s
+    where
+        skip (' ':s) = get >> skip s
+        skip _       = return ()
+
 unescaped :: ReadP String
 unescaped = munch (`notElem` ",\"\r\n\t")
 
@@ -39,7 +47,7 @@ fullquoted :: ReadP String
 fullquoted = fmap (intercalate "\"") (many1 singlequoted)
 
 csvcell :: ReadP String
-csvcell = skipSpaces >> (unescaped +++ fullquoted)
+csvcell = munchSpaces >> (unescaped +++ fullquoted)
 
 csvrow :: ReadP [String]
 csvrow = sepBy1 csvcell (char ',')
